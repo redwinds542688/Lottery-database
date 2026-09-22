@@ -2349,6 +2349,12 @@ function applyUiScale(){try{
 applyUiScale();
 function scheduleSheetRelayout(force){
   applyUiScale();
+  /* 2026-09-22 使用者提醒「還有哪些按鍵會有影響」想到的：這裡是resize/orientationchange事件共用的入口，
+     不是只有visibilitychange才會走到——真的旋轉手機、分割畫面等resize也會呼叫到applyDesktopScrollerWidth()。
+     三層開著時真正的開獎單列被藏起來、畫面是複製品，這裡量的#panels/.scroller是量到錯的內容，同一種版面跑掉。
+     三層自己另外掛了resize監聽(見ST.on那段resize→refreshFull)，這裡略過不會讓三層resize時沒反應。
+     抓牌畫面(非三層)本來就設計成沿用這裡的寬度演算法(跟首頁一致)，不受影響，所以只排除三層(zp-sanceng)，不是整個zhuapai-mode。 */
+  if(document.body.classList.contains("zp-sanceng"))return;
   const w=document.documentElement.clientWidth;
   if(!force&&w===__sheetLastLayoutW)return;
   __sheetLastLayoutW=w;
@@ -2359,7 +2365,7 @@ function scheduleSheetRelayout(force){
       if(typeof applyDesktopScrollerWidth==="function")applyDesktopScrollerWidth();
       if(typeof applyImgGameTabsWidth==="function")applyImgGameTabsWidth();
       if(typeof applyImgHintBarConnect==="function")applyImgHintBarConnect();
-      
+
     }catch(e){}
   },200);
 }
