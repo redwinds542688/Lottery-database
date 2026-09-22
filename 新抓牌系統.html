@@ -1733,13 +1733,6 @@ table.road tr.zp-sc-head td.zp-sc-head-td{ padding:0 !important; text-align:cent
 body.theme-dark table.road tr.zp-sc-head td.zp-sc-head-td{ background:#121212; color:#e6e6e6; }
 .zp-sc-head-in{ position:relative; display:flex; align-items:center; justify-content:center; width:100%; box-sizing:border-box; }
 .zp-sc-title{ font-weight:900; font-size:12.5px; letter-spacing:2px; line-height:1; font-family:"Noto Sans TC","PingFang TC",sans-serif; }
-/* 2026-09-22 標題列兩顆鍵(左「定點」、右「切換」)：外觀比照底部五顆鍵，尺寸由 sizeHeadButtons() 換算成跟「返回」鍵一樣大 */
-.zp-sc-btn{ position:absolute; top:50%; transform:translateY(-50%); display:flex; align-items:center; justify-content:center; box-sizing:border-box; padding:0; border-radius:3px; background:#8a8a8a; color:#fff; font-weight:700; font-size:9.5px; letter-spacing:0; line-height:1; white-space:nowrap; overflow:hidden; font-family:"Noto Sans TC","PingFang TC",sans-serif;
-  background-image:linear-gradient(180deg, rgba(255,255,255,.30) 0%, rgba(255,255,255,0) 48%, rgba(0,0,0,.10) 52%, rgba(0,0,0,.24) 100%);
-  box-shadow:0 1px 0 rgba(0,0,0,.55), 0 1.5px 2px rgba(0,0,0,.4), inset 0 .5px 0 rgba(255,255,255,.45); text-shadow:0 .5px .5px rgba(0,0,0,.5); -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; touch-action:manipulation; cursor:pointer; }
-.zp-sc-switch{ right:1px; }
-.zp-sc-fixed{ left:1px; }
-.zp-sc-btn.tap-flash{ background:#FFD700; color:#000; }
 table.road td.num.zp-sc-note{ text-align:center; font-size:8.5px; font-weight:700; color:#c62828; letter-spacing:0; font-family:"Noto Sans TC","PingFang TC",sans-serif; }
 body.theme-dark table.road td.num.zp-sc-note{ color:#ff8a80; }
 table.road td.num.zp-sc-hit:not(.num-marked){ box-shadow:inset 0 0 0 1.5px #FF3B3B; }
@@ -4316,12 +4309,7 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
    if(label){const nums=Array.prototype.slice.call(tr.querySelectorAll("td.num"));nums.slice(1).forEach(function(td){td.remove()});if(nums[0]){nums[0].colSpan=nums.length;nums[0].className="num zp-sc-note";nums[0].textContent=label}}
    return tr}
  function headRow(label,tdH,colCount){const tr=document.createElement("tr");tr.className="zp-sc-head zp-sc-synth";const td=document.createElement("td");td.className="zp-sc-head-td";td.colSpan=colCount;td.style.height=tdH;
-   td.innerHTML='<div class="zp-sc-head-in" style="height:'+tdH+'"><span class="zp-sc-btn zp-sc-fixed" role="button" aria-label="定點">定點</span><span class="zp-sc-title"></span></div>';td.querySelector(".zp-sc-title").textContent=label;tr.appendChild(td);
-   Array.prototype.forEach.call(td.querySelectorAll(".zp-sc-btn"),function(btn){
-     ["pointerdown","pointerup","touchstart","touchend","mousedown","mouseup"].forEach(function(ev){btn.addEventListener(ev,function(e){e.stopPropagation()})});
-     btn.addEventListener("contextmenu",function(e){e.preventDefault()});
-     let lastAt=0;btn.addEventListener("click",function(e){e.stopPropagation();e.preventDefault();const now=Date.now();if(now-lastAt<350)return;lastAt=now;btn.classList.add("tap-flash");setTimeout(function(){btn.classList.remove("tap-flash")},200);
-       if(typeof logEvent==="function"){try{logEvent("三層","定點鍵(功能待使用者定義)")}catch(err){}}})});
+   td.innerHTML='<div class="zp-sc-head-in" style="height:'+tdH+'"><span class="zp-sc-title"></span></div>';td.querySelector(".zp-sc-title").textContent=label;tr.appendChild(td);
    return tr}
  /* 標題列兩顆鍵的大小＝下面「返回」鍵在螢幕上的大小(表格有縮放，先量出縮放倍率再換算成表格內的尺寸)；文字最大化(字高≈鍵高，跟返回鍵一樣) */
  function sizeHeadButtons(){const head=ST.head?ST.head.firstElementChild:null;if(!head)return;const ref=document.getElementById("period-btn");const rr=ref?ref.getBoundingClientRect():null;const hr=head.getBoundingClientRect();
