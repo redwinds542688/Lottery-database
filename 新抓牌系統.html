@@ -1746,8 +1746,6 @@ table.road td.num.zp-sc-hit:not(.num-marked){ box-shadow:inset 0 0 0 1.5px #FF3B
 body.zp-sanceng #connect-svg{ display:none !important; }/* 2026-09-22 三層第二版：畫面是複製品，第三招連線量不到位置，三層開著時不顯示 */
 /* 2026-09-22 三層：搜尋基礎(定點格，例 27,29)用標記框色畫外框 */
 body.zp-sanceng table.road td.num.zp-sc-key{ box-shadow:inset 0 0 0 1.6px var(--mark-frame-color, #2ECC71) !important; }
-/* 2026-09-22 三層+定顯的九宮差三區命中標記：跟c-mode-cha-echo-cell同一套反轉配色(框色當底、底色當框) */
-table.road td.num.num-marked.num-marked-click.zp-sc-triple-hit::before{ background:var(--mark-frame-color, #2ECC71) !important; border:1.4px solid var(--mark-bg-color, #FF3B3B) !important; }
 #zp-sc-frames{ position:fixed; inset:0; z-index:0; pointer-events:none; }
 .zp-sc-frame{ position:absolute; box-sizing:border-box; border:1px solid #c62828; pointer-events:none; }/* 2026-09-22 使用者回報「外框呢」：底色框在亮色系看不見，改紅框；粗細1px */
 /* 2026-09-22 使用者指示：每區第6期(最後一列)改用底色標示(比外框明顯)，用「線色組1」(--mark-line-color色系PALETTE_GREEN最淺那格#E6F7EC)填底色，見render()裡的zp-sc-last-row */
@@ -4330,8 +4328,9 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
    ST.zones.forEach(function(g,gi){let L=1e9,T=1e9,R=-1e9,B=-1e9;g.forEach(function(tr){if(!tr||!tr.isConnected)return;const tds=tr.querySelectorAll("td");if(!tds.length)return;const a=tds[0].getBoundingClientRect(),b=tds[tds.length-1].getBoundingClientRect();if(a.height<=0)return;L=Math.min(L,a.left);T=Math.min(T,a.top);R=Math.max(R,b.right);B=Math.max(B,b.bottom)});
      const d=box.children[gi];if(R<=L||B<=T){d.style.display="none";return}d.style.display="";d.style.left=L.toFixed(2)+"px";d.style.top=T.toFixed(2)+"px";d.style.width=(R-L).toFixed(2)+"px";d.style.height=(B-T).toFixed(2)+"px"});
    drawTripleHitLines()}
- /* 2026-09-22 使用者指示：條件成立(zp-sc-triple-hit)的第一區↔第二區號碼畫線連接，線段中央畫正方形顯示命中的九宮差；
+ /* 2026-09-22 使用者指示：條件成立的號碼各自連回自己那區第6期真正命中的號碼，畫線連接；
     每次drawFrames()都跟著重算(捲動/切換標的/開關三層都會呼叫到)，資料來源是applyTripleHitMarks()存的ST.tripleHits */
+ const ZP_SC_SHOW_TRIPLE_HIT_SQUARE=false;/* 2026-09-22 使用者指示「正方形先暫停不用」：線段中央顯示九宮差的正方形先關掉，改true可恢復，線本身不受影響 */
  function drawTripleHitLines(){
    let svg=document.getElementById("zp-sc-triple-svg");
    if(!ST.on||!document.body.classList.contains("zhuapai-mode")||!ST.tripleHits.length){if(svg)svg.innerHTML="";return}
@@ -4343,6 +4342,7 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
      const r0=td0.getBoundingClientRect(),r1=td1.getBoundingClientRect();if(r0.width<=0||r1.width<=0)return;
      const x0=r0.left+r0.width/2,y0=r0.top+r0.height/2,x1=r1.left+r1.width/2,y1=r1.top+r1.height/2;
      const line=document.createElementNS(svgNs,"line");line.setAttribute("x1",x0.toFixed(2));line.setAttribute("y1",y0.toFixed(2));line.setAttribute("x2",x1.toFixed(2));line.setAttribute("y2",y1.toFixed(2));line.setAttribute("stroke","var(--mark-line-color, #2ECC71)");line.setAttribute("stroke-width","2");svg.appendChild(line);
+     if(!ZP_SC_SHOW_TRIPLE_HIT_SQUARE)return;
      const mx=(x0+x1)/2,my=(y0+y1)/2,side=Math.max(16,Math.min(r0.width,r0.height)*0.9);
      const rect=document.createElementNS(svgNs,"rect");rect.setAttribute("x",(mx-side/2).toFixed(2));rect.setAttribute("y",(my-side/2).toFixed(2));rect.setAttribute("width",side.toFixed(2));rect.setAttribute("height",side.toFixed(2));rect.setAttribute("fill","var(--mark-line-color, #2ECC71)");rect.setAttribute("stroke","var(--mark-line-color, #2ECC71)");rect.setAttribute("stroke-width","1.4");svg.appendChild(rect);
      const text=document.createElementNS(svgNs,"text");text.setAttribute("x",mx.toFixed(2));text.setAttribute("y",my.toFixed(2));text.setAttribute("text-anchor","middle");text.setAttribute("dominant-baseline","central");text.setAttribute("font-size",(side*0.55).toFixed(2));text.setAttribute("font-weight","800");text.setAttribute("fill","#000");text.textContent=(h.offset>0?"+":"")+h.offset;svg.appendChild(text)
@@ -4370,8 +4370,8 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
    applyTripleHitMarks()}
  /* 2026-09-22 使用者設計「三層+定顯」專屬搜尋：第一區第1~5期(每期colCount個號碼)逐一號碼配九宮差(9個偏移全試)，
     若某個偏移命中該區第6期(任一欄即可)，換第二區同一(期,欄)位置、同一個偏移再試一次；也命中第二區第6期＝條件成立，
-    不用再驗證第三區(使用者確認)。命中的號碼在第一/二/三區同位置都用「反轉配色」(zp-sc-triple-hit，框色當底、底色當框，
-    跟c-mode-cha-echo-cell同一套)圈起來。只在三層+三層段落(ST.mode===0)+定顯(window.fullPageSheetMode==="同")時計算。 */
+    不用再驗證第三區(使用者確認)。命中的號碼在第一/二/三區同位置都用一般標記圈起來(num-marked-click預設配色：框色當框、
+    底色當底，2026-09-22使用者指示不要反轉配色)。只在三層+三層段落(ST.mode===0)+定顯(window.fullPageSheetMode==="同")時計算。 */
  function applyTripleHitMarks(){
    ST.tripleHits=[];
    if(!(ST.on&&ST.mode===0&&window.fullPageSheetMode==="同"&&ST.zones.length>=3))return;
@@ -4389,10 +4389,10 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
        const drags0=calcNineGridDrag(parseInt(n0,10),maxBall),drags1=calcNineGridDrag(parseInt(n1,10),maxBall);
        let hitK=-1;for(let k=0;k<drags0.length;k++){if(map0[drags0[k]]&&map1[drags1[k]]){hitK=k;break}}
        if(hitK<0)continue;
-       [td0,td1].forEach(function(td){td.classList.add("num-marked","num-marked-click","zp-sc-triple-hit")});
-       const td2=tds2?tds2[c]:null;if(td2&&normalizedNum(td2))td2.classList.add("num-marked","num-marked-click","zp-sc-triple-hit");
-       /* 2026-09-22 使用者指示：第一區命中的號碼連線到第一區第6期真正命中的那個號碼；第二區同理連第二區自己的第6期，
-          不是連到另一區。線段中央畫正方形顯示命中的九宮差 */
+       /* 2026-09-22 使用者指示：條件成立的號碼用一般標記配色(框色當框、底色當底，不再反轉) */
+       [td0,td1].forEach(function(td){td.classList.add("num-marked","num-marked-click")});
+       const td2=tds2?tds2[c]:null;if(td2&&normalizedNum(td2))td2.classList.add("num-marked","num-marked-click");
+       /* 第一區命中的號碼連線到第一區第6期真正命中的那個號碼；第二區同理連第二區自己的第6期，不是連到另一區 */
        const offVal=NINE_GRID_DRAG_OFFSETS[hitK];
        ST.tripleHits.push({td0:td0,td1:map0[drags0[hitK]],offset:offVal});
        ST.tripleHits.push({td0:td1,td1:map1[drags1[hitK]],offset:offVal})
