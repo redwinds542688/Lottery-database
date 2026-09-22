@@ -1748,8 +1748,9 @@ body.zp-sanceng #connect-svg{ display:none !important; }/* 2026-09-22 三層第�
 body.zp-sanceng table.road td.num.zp-sc-key{ box-shadow:inset 0 0 0 1.6px var(--mark-frame-color, #2ECC71) !important; }
 #zp-sc-frames{ position:fixed; inset:0; z-index:0; pointer-events:none; }
 .zp-sc-frame{ position:absolute; box-sizing:border-box; border:1px solid #c62828; pointer-events:none; }/* 2026-09-22 使用者回報「外框呢」：底色框在亮色系看不見，改紅框；粗細1px */
-/* 2026-09-22 使用者指示：每區第6期(最後一列)改用底色標示(比外框明顯)，用「線色組1」(--mark-line-color色系PALETTE_GREEN最淺那格#E6F7EC)填底色，見render()裡的zp-sc-last-row */
-table.road tr.zp-sc-synth.zp-sc-last-row td{ background:#E6F7EC !important; }
+/* 2026-09-22 使用者指示：每區第6期(最後一列)改用底色標示(比外框明顯)，用「線色組1」(--mark-line-color色系PALETTE_GREEN最淺那格#E6F7EC)填底色，見render()裡的zp-sc-last-row。
+   2026-09-22 使用者回報「第六期的號碼太不清楚」：暗色系底下文字原本繼承白字，疊在這個淺色底上幾乎看不見；強制文字改深色，亮色/暗色系都固定黑字 */
+table.road tr.zp-sc-synth.zp-sc-last-row td{ background:#E6F7EC !important; color:#000 !important; }
 html body #zhuapai-btn.zp-sc-on.zp-sc-on{ background-color:#FFD700 !important; color:#000 !important; }
 body.zp-sanceng #data-blank-divider-line{ display:none !important; }
 #zp-sc-toast{ position:fixed; left:50%; top:42%; transform:translate(-50%,-50%); max-width:86vw; background:rgba(0,0,0,.82); color:#fff; padding:10px 16px; border-radius:8px; font-size:16px; line-height:1.4; z-index:1300; opacity:0; pointer-events:none; transition:opacity .2s; text-align:center; }
