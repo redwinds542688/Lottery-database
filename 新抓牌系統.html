@@ -4343,19 +4343,20 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
    const filler=blankRow(tmpl,null);frag.appendChild(filler);ST.synth.push(filler);
    parent.appendChild(frag);
    ST.zones=zones.map(function(z,zi){const base=(mode===0)?zi*6:12;return outRows.slice(base,base+6)})}
- function build(mode,off,recompute,reuseCtx){
+ function build(mode,off,recompute){
    if(!document.body.classList.contains("zhuapai-mode"))return false;
    const offAuto=!(typeof off==="number"&&isFinite(off));if(offAuto)off=0;
    const wasOn=ST.on;
-   if(reuseCtx&&wasOn&&ST.info&&ST.info.ctx){
-     /* 模式鍵(定顯/全顯)切換專用：標記沒變、只是判定邏輯變了，但真正的開獎單列這時是藏起來的(display:none)，
-        prepare()重掃DOM一定找不到列而失敗——所以不能再走下面compute()那條路，沿用現有ctx只重新驗證找標的。
-        定顯成立時全顯的判定條件更寬鬆，邏輯上一定也成立；真的找不到(全顯切定顯變嚴格才可能發生)就留在三層裡跳提示，不退出 */
+   if(wasOn&&ST.info&&recompute){
+     /* 三層開著時重算(標記變動/模式鍵切換都會呼叫到這裡)：真正的開獎單列這時是藏起來的(display:none)，
+        下面compute()裡的prepare()重掃DOM一定找不到列而失敗——不管哪個原因觸發重算都一樣，不能再靠它。
+        改成沿用現有ctx(已掃描好的標記/期別資料)只重新驗證找標的，不重新掃DOM。
+        模式鍵切換時標記沒變、只是判定邏輯變了：全顯的判定條件比定顯寬鬆(同號碼任一欄 vs 同欄位)，
+        邏輯上定顯成立全顯就一定成立；真的找不到(全顯切定顯變嚴格才可能發生)就留著原本的標的、跳提示，不退出 */
      const cand=findCandidate(ST.info.ctx,ST.info.cur?ST.info.cur.label:null);
-     if(!cand){toast("此顯示模式下沒有可用的標的");return false}
-     ST.info.cur=cand
-   } else if(!wasOn||recompute||!ST.info){
-     const res=compute(wasOn&&ST.info&&ST.info.cur?ST.info.cur.label:null);
+     if(cand)ST.info.cur=cand;else toast("此顯示模式下沒有可用的標的")
+   } else if(!wasOn||!ST.info){
+     const res=compute(null);
      if(res.err){if(!wasOn){if(!res.silent)toast(res.err)}else exit();return false}
      ST.info={c:res.c,ctx:res.ctx,cur:res.cur}}
    const info=curInfo();if(!(mode>=0&&mode<=info.lists.length))mode=0;
@@ -4430,8 +4431,8 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
     if(e.cancelable)e.preventDefault()},true);
   ["pointerup","pointercancel"].forEach(function(n){document.addEventListener(n,function(e){if(e.pointerId===gId){const was=gDecided==="scroll";gOn=false;gId=null;gDecided=null;if(was&&ST.on)refreshFull()}},true)});
  }
- /* 模式鍵(單顯/定顯/全顯)切換時：三層開著就用新的比對邏輯重算；新模式下找不到標的也不可以退出三層(見build第4個參數) */
- {const __prevHook=window.onFullPageSheetModeChange;window.onFullPageSheetModeChange=function(){let r;try{if(typeof __prevHook==="function")r=__prevHook.apply(this,arguments)}catch(e){}if(ST.on){try{build(ST.mode,ST.off,true,true)}catch(e){}}return r}}
+ /* 模式鍵(單顯/定顯/全顯)切換時：三層開著就用新的比對邏輯重算；新模式下找不到標的也不可以退出三層(見build裡wasOn&&recompute那段) */
+ {const __prevHook=window.onFullPageSheetModeChange;window.onFullPageSheetModeChange=function(){let r;try{if(typeof __prevHook==="function")r=__prevHook.apply(this,arguments)}catch(e){}if(ST.on){try{build(ST.mode,ST.off,true)}catch(e){}}return r}}
  /* 第一招在三層裡標定/取消 → applyMarksToClone 跑完後重算依據、重畫複製品 */
  if(typeof applyMarksToClone==="function"){const __oam=applyMarksToClone;applyMarksToClone=function(){const r=__oam.apply(this,arguments);if(ST.on){try{build(ST.mode,ST.off,true)}catch(e){}}return r}}
  /* 三層開著時：視窗重排(捲動)一律不做；返回主畫面／重畫開獎單前先還原 */
