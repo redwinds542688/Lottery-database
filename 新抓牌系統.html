@@ -4242,7 +4242,7 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
      關閉三層／返回主畫面／重畫開獎單時把真正的列的顯示狀態原封不動還原。三層開著時抓牌原本的單指捲動停用、備列(平滑捲動)暫停。
    ・2026-09-22 使用者指示：三層裡一二三招失效(marksAllowed 回 false)；返回鍵單擊/雙擊＝只退出三層回到抓牌(第二下 700ms 內吃掉，不會再退出抓牌)；清除鍵單擊/雙擊失效(長按仍是全部歸零)；左下角鍵單擊/雙擊「三層」＝進入三層，進入後改名「切換」＝切換標的，不再用它退出(退出只靠返回)。 */
 (function(){
- const ST={on:false,mode:0,off:0,synth:[],head:null,hidden:[],zones:[],k0:0,info:null,lists:[],raf:0,pendingOff:null,tripleHits:[]};
+ const ST={on:false,mode:0,off:0,synth:[],head:null,hidden:[],zones:[],k0:0,info:null,lists:[],raf:0,pendingOff:null,tripleHits:[],keyRowSixLinks:[]};
  const NAMES=["三層段落","備用列二","備用列三","備用列四"];
  let __toastT=null;
  function toast(msg){let el=document.getElementById("zp-sc-toast");if(!el){el=document.createElement("div");el.id="zp-sc-toast";document.body.appendChild(el)}el.textContent=msg;el.classList.add("show");clearTimeout(__toastT);__toastT=setTimeout(function(){el.classList.remove("show")},2000)}
@@ -4328,12 +4328,12 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
    if(!rr||rr.width<=0||rr.height<=0||hr.width<=0||!head.offsetWidth||!head.offsetHeight)return;const sx=hr.width/head.offsetWidth,sy=hr.height/head.offsetHeight;
    const w=rr.width/sx,h=Math.min(rr.height/sy,head.offsetHeight-0.5);const fs=Math.min(h*0.96,(w-2)/2.0);
    Array.prototype.forEach.call(head.querySelectorAll(".zp-sc-btn"),function(btn){btn.style.width=w.toFixed(2)+"px";btn.style.height=h.toFixed(2)+"px";btn.style.fontSize=fs.toFixed(2)+"px";btn.style.borderRadius=(7/sy).toFixed(2)+"px"})}
- function drawFrames(){let box=document.getElementById("zp-sc-frames");if(!ST.on||!document.body.classList.contains("zhuapai-mode")){if(box)box.remove();drawTripleHitLines();return}
+ function drawFrames(){let box=document.getElementById("zp-sc-frames");if(!ST.on||!document.body.classList.contains("zhuapai-mode")){if(box)box.remove();drawTripleHitLines();drawKeyRowSixLines();return}
    if(!box){box=document.createElement("div");box.id="zp-sc-frames";const ov=document.getElementById("img-overlay");const mask=document.getElementById("zp-bottom-mask");if(ov&&mask&&mask.parentNode===ov)ov.insertBefore(box,mask.nextSibling);else if(ov)ov.insertBefore(box,ov.firstChild);else document.body.appendChild(box)}
    const want=ST.zones.length;while(box.children.length<want){const d=document.createElement("div");d.className="zp-sc-frame";box.appendChild(d)}while(box.children.length>want)box.removeChild(box.lastChild);
    ST.zones.forEach(function(g,gi){let L=1e9,T=1e9,R=-1e9,B=-1e9;g.forEach(function(tr){if(!tr||!tr.isConnected)return;const tds=tr.querySelectorAll("td");if(!tds.length)return;const a=tds[0].getBoundingClientRect(),b=tds[tds.length-1].getBoundingClientRect();if(a.height<=0)return;L=Math.min(L,a.left);T=Math.min(T,a.top);R=Math.max(R,b.right);B=Math.max(B,b.bottom)});
      const d=box.children[gi];if(R<=L||B<=T){d.style.display="none";return}d.style.display="";d.style.left=L.toFixed(2)+"px";d.style.top=T.toFixed(2)+"px";d.style.width=(R-L).toFixed(2)+"px";d.style.height=(B-T).toFixed(2)+"px"});
-   drawTripleHitLines()}
+   drawTripleHitLines();drawKeyRowSixLines()}
  /* 2026-09-22 使用者指示：條件成立的號碼各自連回自己那區第6期真正命中的號碼，畫線連接；
     每次drawFrames()都跟著重算(捲動/切換標的/開關三層都會呼叫到)，資料來源是applyTripleHitMarks()存的ST.tripleHits */
  const ZP_SC_SHOW_TRIPLE_HIT_SQUARE=false;/* 2026-09-22 使用者指示「正方形先暫停不用」：線段中央顯示九宮差的正方形先關掉，改true可恢復，線本身不受影響 */
@@ -4359,6 +4359,21 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
      const rect=document.createElementNS(svgNs,"rect");rect.setAttribute("x",(mx-side/2).toFixed(2));rect.setAttribute("y",(my-side/2).toFixed(2));rect.setAttribute("width",side.toFixed(2));rect.setAttribute("height",side.toFixed(2));rect.setAttribute("fill","var(--mark-line-color, #2ECC71)");rect.setAttribute("stroke","var(--mark-line-color, #2ECC71)");rect.setAttribute("stroke-width","1.4");svg.appendChild(rect);
      const text=document.createElementNS(svgNs,"text");text.setAttribute("x",mx.toFixed(2));text.setAttribute("y",my.toFixed(2));text.setAttribute("text-anchor","middle");text.setAttribute("dominant-baseline","central");text.setAttribute("font-size",(side*0.55).toFixed(2));text.setAttribute("font-weight","800");text.setAttribute("fill","#000");text.textContent=(h.offset>0?"+":"")+h.offset;svg.appendChild(text)
    })}
+ /* 2026-09-22 使用者指示：標的(zp-sc-key)到「第一、二區第6期共同號碼」的連線，用外框線色(跟zp-sc-frame同色#c62828)，
+    跟九宮差那組連線(綠色)區分開來；資料來源是applyKeyRowSixLinks()存的ST.keyRowSixLinks，畫法跟drawTripleHitLines()同一套 */
+ function drawKeyRowSixLines(){
+   let svg=document.getElementById("zp-sc-key-row6-svg");
+   if(!ST.on||!document.body.classList.contains("zhuapai-mode")||!ST.keyRowSixLinks.length){if(svg)svg.innerHTML="";return}
+   const svgNs="http://www.w3.org/2000/svg";
+   if(!svg){svg=document.createElementNS(svgNs,"svg");svg.id="zp-sc-key-row6-svg";svg.style.position="fixed";svg.style.top="0";svg.style.left="0";svg.style.width="100vw";svg.style.height="100vh";svg.style.overflow="visible";svg.style.pointerEvents="none";svg.style.zIndex="999";document.body.appendChild(svg)}
+   svg.innerHTML="";
+   ST.keyRowSixLinks.forEach(function(h){
+     const td0=h.td0,td1=h.td1;if(!td0||!td0.isConnected||!td1||!td1.isConnected)return;
+     const rect0=cellScreenRect(td0),rect1=cellScreenRect(td1);if(rect0.halfW<=0||rect1.halfW<=0)return;
+     const p0=rectEdgePoint(rect0,rect1.cx-rect0.cx,rect1.cy-rect0.cy),p1=rectEdgePoint(rect1,rect0.cx-rect1.cx,rect0.cy-rect1.cy);
+     const cellScale=((rect0.halfW*2/28.12)+(rect1.halfW*2/28.12))/2,strokeWidth=Math.max(.3,2*cellScale);
+     const line=document.createElementNS(svgNs,"line");line.setAttribute("x1",p0.x.toFixed(2));line.setAttribute("y1",p0.y.toFixed(2));line.setAttribute("x2",p1.x.toFixed(2));line.setAttribute("y2",p1.y.toFixed(2));line.setAttribute("stroke","#c62828");line.setAttribute("stroke-width",strokeWidth.toFixed(2));svg.appendChild(line)
+   })}
  /* 完整重畫(開啟/放手/標記變動後)：紅框、遮片、註記欄、紅色分界線 */
  function refreshFull(){const f=function(){sizeHeadButtons();drawFrames();try{if(typeof window.__zpBottomMask==="function")window.__zpBottomMask()}catch(e){}try{if(typeof window.__zpRenderPickCol==="function")window.__zpRenderPickCol()}catch(e){}try{if(typeof refreshBlankPeriodFrame==="function")refreshBlankPeriodFrame()}catch(e){}};
    requestAnimationFrame(f);setTimeout(f,150);setTimeout(f,450)}
@@ -4379,7 +4394,7 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
    ST.zones=zones.map(function(z,zi){const base=(mode===0)?zi*6:12;return outRows.slice(base,base+6)});
    /* 2026-09-22 使用者指示：每區第6期(最後一列)用底色標示，比外框明顯 */
    ST.zones.forEach(function(g){const tr=g[g.length-1];if(tr)tr.classList.add("zp-sc-last-row")});
-   applyTripleHitMarks()}
+   applyTripleHitMarks();applyKeyRowSixLinks()}
  /* 2026-09-22 使用者設計「三層+定顯」專屬搜尋：第一區第1~5期(每期colCount個號碼)逐一號碼配九宮差(9個偏移全試)，
     若某個偏移命中該區第6期(任一欄即可)，換第二區同一(期,欄)位置、同一個偏移再試一次；也命中第二區第6期＝條件成立，
     不用再驗證第三區(使用者確認)。命中的號碼在第一/二/三區同位置都用反轉配色圈起來(zp-sc-triple-hit：框色當底、底色當框)，
@@ -4413,6 +4428,24 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
        ST.tripleHits.push({td0:td1,td1:map1[drags1[hitK]],offset:offVal})
      }
    }
+ }
+ /* 2026-09-22 使用者指示：標的號碼(zp-sc-key，例03)如果第一區、第二區第6期都出現同一個號碼(任一欄即可，例38)，
+    從標的畫線到那個號碼所在的格子，用外框線色(跟三區外框#c62828同色，區別於九宮差那組線的線色)。
+    只比對第一、二區(跟九宮差驗證範圍一致，第三區不用再驗證)；只在三層+三層段落+定顯時計算 */
+ function applyKeyRowSixLinks(){
+   ST.keyRowSixLinks=[];
+   if(!(ST.on&&ST.mode===0&&window.fullPageSheetMode==="同"&&ST.zones.length>=3))return;
+   const z0=ST.zones[0],z1=ST.zones[1];
+   const numMap=function(tr){const m={};if(!tr)return m;Array.prototype.forEach.call(tr.querySelectorAll("td.num"),function(td){const n=normalizedNum(td);if(n&&!m[n])m[n]=td});return m};
+   const map0=numMap(z0[5]),map1=numMap(z1[5]);
+   const common=Object.keys(map0).filter(function(n){return map1[n]});
+   if(!common.length)return;
+   const keysOf=function(z){const out=[];z.forEach(function(tr){if(!tr)return;Array.prototype.forEach.call(tr.querySelectorAll("td.num.zp-sc-key"),function(td){out.push(td)})});return out};
+   const keys0=keysOf(z0),keys1=keysOf(z1);
+   common.forEach(function(n){
+     keys0.forEach(function(kt){ST.keyRowSixLinks.push({td0:kt,td1:map0[n]})});
+     keys1.forEach(function(kt){ST.keyRowSixLinks.push({td0:kt,td1:map1[n]})})
+   })
  }
  function build(mode,off,recompute){
    if(!document.body.classList.contains("zhuapai-mode"))return false;
