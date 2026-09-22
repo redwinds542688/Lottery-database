@@ -1746,9 +1746,10 @@ table.road td.num.zp-sc-hit:not(.num-marked){ box-shadow:inset 0 0 0 1.5px #FF3B
 body.zp-sanceng #connect-svg{ display:none !important; }/* 2026-09-22 三層第二版：畫面是複製品，第三招連線量不到位置，三層開著時不顯示 */
 /* 2026-09-22 三層：搜尋基礎(定點格，例 27,29)用標記框色畫外框 */
 body.zp-sanceng table.road td.num.zp-sc-key{ box-shadow:inset 0 0 0 1.6px var(--mark-frame-color, #2ECC71) !important; }
-#zp-sc-frames,#zp-sc-last-frames{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+#zp-sc-frames{ position:fixed; inset:0; z-index:0; pointer-events:none; }
 .zp-sc-frame{ position:absolute; box-sizing:border-box; border:1px solid #c62828; pointer-events:none; }/* 2026-09-22 使用者回報「外框呢」：底色框在亮色系看不見，改紅框；粗細1px */
-.zp-sc-frame-last{ position:absolute; box-sizing:border-box; border:1.4px solid var(--mark-frame-color, #2ECC71); pointer-events:none; }/* 2026-09-22 使用者指示：每區第6期(最後一列)另外框起來，用線色(標記框色 --mark-frame-color，同zp-sc-key)，不是三區外框那個紅色 */
+/* 2026-09-22 使用者指示：每區第6期(最後一列)改用底色標示(比外框明顯)，用「線色組1」(--mark-line-color色系PALETTE_GREEN最淺那格#E6F7EC)填底色，見render()裡的zp-sc-last-row */
+table.road tr.zp-sc-synth.zp-sc-last-row td{ background:#E6F7EC !important; }
 html body #zhuapai-btn.zp-sc-on.zp-sc-on{ background-color:#FFD700 !important; color:#000 !important; }
 body.zp-sanceng #data-blank-divider-line{ display:none !important; }
 #zp-sc-toast{ position:fixed; left:50%; top:42%; transform:translate(-50%,-50%); max-width:86vw; background:rgba(0,0,0,.82); color:#fff; padding:10px 16px; border-radius:8px; font-size:16px; line-height:1.4; z-index:1300; opacity:0; pointer-events:none; transition:opacity .2s; text-align:center; }
@@ -4321,15 +4322,11 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
    if(!rr||rr.width<=0||rr.height<=0||hr.width<=0||!head.offsetWidth||!head.offsetHeight)return;const sx=hr.width/head.offsetWidth,sy=hr.height/head.offsetHeight;
    const w=rr.width/sx,h=Math.min(rr.height/sy,head.offsetHeight-0.5);const fs=Math.min(h*0.96,(w-2)/2.0);
    Array.prototype.forEach.call(head.querySelectorAll(".zp-sc-btn"),function(btn){btn.style.width=w.toFixed(2)+"px";btn.style.height=h.toFixed(2)+"px";btn.style.fontSize=fs.toFixed(2)+"px";btn.style.borderRadius=(7/sy).toFixed(2)+"px"})}
- function drawFrames(){let box=document.getElementById("zp-sc-frames");let lastBox=document.getElementById("zp-sc-last-frames");if(!ST.on||!document.body.classList.contains("zhuapai-mode")){if(box)box.remove();if(lastBox)lastBox.remove();return}
+ function drawFrames(){let box=document.getElementById("zp-sc-frames");if(!ST.on||!document.body.classList.contains("zhuapai-mode")){if(box)box.remove();return}
    if(!box){box=document.createElement("div");box.id="zp-sc-frames";const ov=document.getElementById("img-overlay");const mask=document.getElementById("zp-bottom-mask");if(ov&&mask&&mask.parentNode===ov)ov.insertBefore(box,mask.nextSibling);else if(ov)ov.insertBefore(box,ov.firstChild);else document.body.appendChild(box)}
-   if(!lastBox){lastBox=document.createElement("div");lastBox.id="zp-sc-last-frames";box.parentNode.insertBefore(lastBox,box.nextSibling)}
    const want=ST.zones.length;while(box.children.length<want){const d=document.createElement("div");d.className="zp-sc-frame";box.appendChild(d)}while(box.children.length>want)box.removeChild(box.lastChild);
-   while(lastBox.children.length<want){const d=document.createElement("div");d.className="zp-sc-frame-last";lastBox.appendChild(d)}while(lastBox.children.length>want)lastBox.removeChild(lastBox.lastChild);
    ST.zones.forEach(function(g,gi){let L=1e9,T=1e9,R=-1e9,B=-1e9;g.forEach(function(tr){if(!tr||!tr.isConnected)return;const tds=tr.querySelectorAll("td");if(!tds.length)return;const a=tds[0].getBoundingClientRect(),b=tds[tds.length-1].getBoundingClientRect();if(a.height<=0)return;L=Math.min(L,a.left);T=Math.min(T,a.top);R=Math.max(R,b.right);B=Math.max(B,b.bottom)});
-     const d=box.children[gi];if(R<=L||B<=T){d.style.display="none";return}d.style.display="";d.style.left=L.toFixed(2)+"px";d.style.top=T.toFixed(2)+"px";d.style.width=(R-L).toFixed(2)+"px";d.style.height=(B-T).toFixed(2)+"px"});
-   /* 2026-09-22 使用者指示：每區第6期(最後一列)另外框起來，同線色 */
-   ST.zones.forEach(function(g,gi){const d=lastBox.children[gi];const tr=g[g.length-1];if(!tr||!tr.isConnected){d.style.display="none";return}const tds=tr.querySelectorAll("td");if(!tds.length){d.style.display="none";return}const a=tds[0].getBoundingClientRect(),b=tds[tds.length-1].getBoundingClientRect();if(a.height<=0){d.style.display="none";return}d.style.display="";d.style.left=a.left.toFixed(2)+"px";d.style.top=a.top.toFixed(2)+"px";d.style.width=(b.right-a.left).toFixed(2)+"px";d.style.height=(a.bottom-a.top).toFixed(2)+"px"})}
+     const d=box.children[gi];if(R<=L||B<=T){d.style.display="none";return}d.style.display="";d.style.left=L.toFixed(2)+"px";d.style.top=T.toFixed(2)+"px";d.style.width=(R-L).toFixed(2)+"px";d.style.height=(B-T).toFixed(2)+"px"})}
  /* 完整重畫(開啟/放手/標記變動後)：紅框、遮片、註記欄、紅色分界線 */
  function refreshFull(){const f=function(){sizeHeadButtons();drawFrames();try{if(typeof window.__zpBottomMask==="function")window.__zpBottomMask()}catch(e){}try{if(typeof window.__zpRenderPickCol==="function")window.__zpRenderPickCol()}catch(e){}try{if(typeof refreshBlankPeriodFrame==="function")refreshBlankPeriodFrame()}catch(e){}};
    requestAnimationFrame(f);setTimeout(f,150);setTimeout(f,450)}
@@ -4347,7 +4344,9 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
      frag.appendChild(el);outRows.push(el);ST.synth.push(el)});
    const filler=blankRow(tmpl,null);frag.appendChild(filler);ST.synth.push(filler);
    parent.appendChild(frag);
-   ST.zones=zones.map(function(z,zi){const base=(mode===0)?zi*6:12;return outRows.slice(base,base+6)})}
+   ST.zones=zones.map(function(z,zi){const base=(mode===0)?zi*6:12;return outRows.slice(base,base+6)});
+   /* 2026-09-22 使用者指示：每區第6期(最後一列)用底色標示，比外框明顯 */
+   ST.zones.forEach(function(g){const tr=g[g.length-1];if(tr)tr.classList.add("zp-sc-last-row")})}
  function build(mode,off,recompute){
    if(!document.body.classList.contains("zhuapai-mode"))return false;
    const offAuto=!(typeof off==="number"&&isFinite(off));if(offAuto)off=0;
