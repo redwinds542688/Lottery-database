@@ -4324,7 +4324,7 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
    drawTripleHitLines();drawKeyRowSixLines()}
  /* 2026-09-22 使用者指示：條件成立的號碼各自連回自己那區第6期真正命中的號碼，畫線連接；
     每次drawFrames()都跟著重算(捲動/切換標的/開關三層都會呼叫到)，資料來源是applyTripleHitMarks()存的ST.tripleHits */
- const ZP_SC_SHOW_TRIPLE_HIT_SQUARE=false;/* 2026-09-22 使用者指示「正方形先暫停不用」：線段中央顯示九宮差的正方形先關掉，改true可恢復，線本身不受影響 */
+ const ZP_SC_SHOW_TRIPLE_HIT_SQUARE=false;/* 2026-09-22 使用者指示「正方形先暫停不用」：線段中央顯示十字差的正方形先關掉，改true可恢復，線本身不受影響 */
  function drawTripleHitLines(){
    let svg=document.getElementById("zp-sc-triple-svg");
    if(!ST.on||!document.body.classList.contains("zhuapai-mode")||!ST.tripleHits.length){if(svg)svg.innerHTML="";return}
@@ -4348,7 +4348,7 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
      const text=document.createElementNS(svgNs,"text");text.setAttribute("x",mx.toFixed(2));text.setAttribute("y",my.toFixed(2));text.setAttribute("text-anchor","middle");text.setAttribute("dominant-baseline","central");text.setAttribute("font-size",(side*0.55).toFixed(2));text.setAttribute("font-weight","800");text.setAttribute("fill","#000");text.textContent=(h.offset>0?"+":"")+h.offset;svg.appendChild(text)
    })}
  /* 2026-09-22 使用者指示：標的(zp-sc-key)到「第一、二區第6期共同號碼」的連線，用外框線色(跟zp-sc-frame同色#c62828)，
-    跟九宮差那組連線(綠色)區分開來；資料來源是applyKeyRowSixLinks()存的ST.keyRowSixLinks，畫法跟drawTripleHitLines()同一套 */
+    跟十字差那組連線(綠色)區分開來；資料來源是applyKeyRowSixLinks()存的ST.keyRowSixLinks，畫法跟drawTripleHitLines()同一套 */
  function drawKeyRowSixLines(){
    let svg=document.getElementById("zp-sc-key-row6-svg");
    if(!ST.on||!document.body.classList.contains("zhuapai-mode")||!ST.keyRowSixLinks.length){if(svg)svg.innerHTML="";return}
@@ -4383,13 +4383,13 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
    /* 2026-09-22 使用者指示：每區第6期(最後一列)用底色標示，比外框明顯 */
    ST.zones.forEach(function(g){const tr=g[g.length-1];if(tr)tr.classList.add("zp-sc-last-row")});
    applyTripleHitMarks();applyKeyRowSixLinks()}
- /* 2026-09-22 使用者設計「三層+定顯」專屬搜尋：第一區第1~5期(每期colCount個號碼)逐一號碼配九宮差(只試5個：-10/-1/0/1/10，
-    見ZP_SC_ALLOWED_DRAG_OFFSETS，斜角4個不用)，
+ /* 2026-09-22 使用者設計「三層+定顯」專屬搜尋：第一區第1~5期(每期colCount個號碼)逐一號碼配十字差(-10/-1/0/1/10這5個，
+    使用者定名「十字差」，見ZP_SC_CROSS_DIFF_OFFSETS；跟全域的九宮差/九宮拖牌是不同概念，只用於這個搜尋)，
     若某個偏移命中該區第6期(任一欄即可)，換第二區同一(期,欄)位置、同一個偏移再試一次；也命中第二區第6期＝條件成立，
     不用再驗證第三區(使用者確認)。命中的號碼在第一/二/三區同位置都用反轉配色圈起來(zp-sc-triple-hit：框色當底、底色當框)，
     跟原本三層定點(zp-sc-key，一般配色)相反，一眼分出哪個是起始標的、哪個是搜尋結果。只在三層+三層段落(ST.mode===0)+
     定顯(window.fullPageSheetMode==="同")時計算。 */
- const ZP_SC_ALLOWED_DRAG_OFFSETS={"-10":true,"-1":true,"0":true,"1":true,"10":true};/* 2026-09-22 使用者指示：三層這裡的九宮差搜尋只用這5個(上下左右+同號)，不用另外4個斜角(-11/-9/9/11)；只影響這個功能，NINE_GRID_DRAG_OFFSETS本身(合匯/差數用的)不動 */
+ const ZP_SC_CROSS_DIFF_OFFSETS={"-10":true,"-1":true,"0":true,"1":true,"10":true};/* 2026-09-22 使用者指示：三層這裡只用這5個(上下左右+同號，使用者定名「十字差」，跟斜角4個一起的九宮差區分)；只影響這個功能，NINE_GRID_DRAG_OFFSETS本身(合匯/差數用的)不動 */
  function applyTripleHitMarks(){
    ST.tripleHits=[];
    if(!(ST.on&&ST.mode===0&&window.fullPageSheetMode==="同"&&ST.zones.length>=3))return;
@@ -4405,7 +4405,7 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
        const td0=tds0[c],td1=tds1[c];if(!td0||!td1)continue;
        const n0=normalizedNum(td0),n1=normalizedNum(td1);if(!n0||!n1)continue;
        const drags0=calcNineGridDrag(parseInt(n0,10),maxBall),drags1=calcNineGridDrag(parseInt(n1,10),maxBall);
-       let hitK=-1;for(let k=0;k<drags0.length;k++){if(!ZP_SC_ALLOWED_DRAG_OFFSETS[NINE_GRID_DRAG_OFFSETS[k]])continue;if(map0[drags0[k]]&&map1[drags1[k]]){hitK=k;break}}
+       let hitK=-1;for(let k=0;k<drags0.length;k++){if(!ZP_SC_CROSS_DIFF_OFFSETS[NINE_GRID_DRAG_OFFSETS[k]])continue;if(map0[drags0[k]]&&map1[drags1[k]]){hitK=k;break}}
        if(hitK<0)continue;
        /* 2026-09-22 使用者指示：08(起始標的/定點zp-sc-key)維持一般配色(紅框藍底)；搜尋邏輯找出的號碼才要反轉配色
           (zp-sc-triple-hit：藍框紅底)。同一格若剛好也是定點zp-sc-key，不能再蓋反轉配色，維持定點原本的一般配色 */
@@ -4420,8 +4420,8 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
    }
  }
  /* 2026-09-22 使用者指示：標的號碼(zp-sc-key，例03)如果第一區、第二區第6期都出現同一個號碼(任一欄即可，例38)，
-    從標的畫線到那個號碼所在的格子，用外框線色(跟三區外框#c62828同色，區別於九宮差那組線的線色)。
-    只比對第一、二區(跟九宮差驗證範圍一致，第三區不用再驗證)；只在三層+三層段落+定顯時計算 */
+    從標的畫線到那個號碼所在的格子，用外框線色(跟三區外框#c62828同色，區別於十字差那組線的線色)。
+    只比對第一、二區(跟十字差驗證範圍一致，第三區不用再驗證)；只在三層+三層段落+定顯時計算 */
  function applyKeyRowSixLinks(){
    ST.keyRowSixLinks=[];
    if(!(ST.on&&ST.mode===0&&window.fullPageSheetMode==="同"&&ST.zones.length>=3))return;
