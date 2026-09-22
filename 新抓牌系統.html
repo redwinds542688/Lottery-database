@@ -1746,6 +1746,8 @@ table.road td.num.zp-sc-hit:not(.num-marked){ box-shadow:inset 0 0 0 1.5px #FF3B
 body.zp-sanceng #connect-svg{ display:none !important; }/* 2026-09-22 三層第二版：畫面是複製品，第三招連線量不到位置，三層開著時不顯示 */
 /* 2026-09-22 三層：搜尋基礎(定點格，例 27,29)用標記框色畫外框 */
 body.zp-sanceng table.road td.num.zp-sc-key{ box-shadow:inset 0 0 0 1.6px var(--mark-frame-color, #2ECC71) !important; }
+/* 2026-09-22 三層+定顯的九宮差三區命中標記：跟c-mode-cha-echo-cell同一套反轉配色(框色當底、底色當框) */
+table.road td.num.num-marked.num-marked-click.zp-sc-triple-hit::before{ background:var(--mark-frame-color, #2ECC71) !important; border:1.4px solid var(--mark-bg-color, #FF3B3B) !important; }
 #zp-sc-frames{ position:fixed; inset:0; z-index:0; pointer-events:none; }
 .zp-sc-frame{ position:absolute; box-sizing:border-box; border:1px solid #c62828; pointer-events:none; }/* 2026-09-22 使用者回報「外框呢」：底色框在亮色系看不見，改紅框；粗細1px */
 /* 2026-09-22 使用者指示：每區第6期(最後一列)改用底色標示(比外框明顯)，用「線色組1」(--mark-line-color色系PALETTE_GREEN最淺那格#E6F7EC)填底色，見render()裡的zp-sc-last-row */
@@ -4346,7 +4348,32 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
    parent.appendChild(frag);
    ST.zones=zones.map(function(z,zi){const base=(mode===0)?zi*6:12;return outRows.slice(base,base+6)});
    /* 2026-09-22 使用者指示：每區第6期(最後一列)用底色標示，比外框明顯 */
-   ST.zones.forEach(function(g){const tr=g[g.length-1];if(tr)tr.classList.add("zp-sc-last-row")})}
+   ST.zones.forEach(function(g){const tr=g[g.length-1];if(tr)tr.classList.add("zp-sc-last-row")});
+   applyTripleHitMarks()}
+ /* 2026-09-22 使用者設計「三層+定顯」專屬搜尋：第一區第1~5期(每期colCount個號碼)逐一號碼配九宮差(9個偏移全試)，
+    若某個偏移命中該區第6期(任一欄即可)，換第二區同一(期,欄)位置、同一個偏移再試一次；也命中第二區第6期＝條件成立，
+    不用再驗證第三區(使用者確認)。命中的號碼在第一/二/三區同位置都用「反轉配色」(zp-sc-triple-hit，框色當底、底色當框，
+    跟c-mode-cha-echo-cell同一套)圈起來。只在三層+三層段落(ST.mode===0)+定顯(window.fullPageSheetMode==="同")時計算。 */
+ function applyTripleHitMarks(){
+   if(!(ST.on&&ST.mode===0&&window.fullPageSheetMode==="同"&&ST.zones.length>=3))return;
+   const z0=ST.zones[0],z1=ST.zones[1],z2=ST.zones[2];
+   const maxBall=cModeMaxBall(),cc=cModeColCount();
+   const numSet=function(tr){const s={};if(!tr)return s;Array.prototype.forEach.call(tr.querySelectorAll("td.num"),function(td){const n=normalizedNum(td);if(n)s[n]=true});return s};
+   const set0=numSet(z0[5]),set1=numSet(z1[5]);
+   for(let r=0;r<5;r++){
+     const tr0=z0[r],tr1=z1[r],tr2=z2[r];if(!tr0||!tr1)continue;
+     const tds0=tr0.querySelectorAll("td.num"),tds1=tr1.querySelectorAll("td.num"),tds2=tr2?tr2.querySelectorAll("td.num"):null;
+     for(let c=0;c<cc;c++){
+       const td0=tds0[c],td1=tds1[c];if(!td0||!td1)continue;
+       const n0=normalizedNum(td0),n1=normalizedNum(td1);if(!n0||!n1)continue;
+       const drags0=calcNineGridDrag(parseInt(n0,10),maxBall),drags1=calcNineGridDrag(parseInt(n1,10),maxBall);
+       let ok=false;for(let k=0;k<drags0.length;k++){if(set0[drags0[k]]&&set1[drags1[k]]){ok=true;break}}
+       if(!ok)continue;
+       [td0,td1].forEach(function(td){td.classList.add("num-marked","num-marked-click","zp-sc-triple-hit")});
+       const td2=tds2?tds2[c]:null;if(td2&&normalizedNum(td2))td2.classList.add("num-marked","num-marked-click","zp-sc-triple-hit")
+     }
+   }
+ }
  function build(mode,off,recompute){
    if(!document.body.classList.contains("zhuapai-mode"))return false;
    const offAuto=!(typeof off==="number"&&isFinite(off));if(offAuto)off=0;
