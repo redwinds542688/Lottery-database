@@ -4397,10 +4397,11 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
        const drags0=calcNineGridDrag(parseInt(n0,10),maxBall),drags1=calcNineGridDrag(parseInt(n1,10),maxBall);
        let hitK=-1;for(let k=0;k<drags0.length;k++){if(map0[drags0[k]]&&map1[drags1[k]]){hitK=k;break}}
        if(hitK<0)continue;
-       /* 2026-09-22 使用者指示：08(起始標的)是原本三層的定點，用一般配色；搜尋邏輯找出的號碼要跟標的相反才分得出來，
-          改回反轉配色(zp-sc-triple-hit：框色當底、底色當框)，不影響定點zp-sc-key自己的方框標記 */
-       [td0,td1].forEach(function(td){td.classList.add("num-marked","num-marked-click","zp-sc-triple-hit")});
-       const td2=tds2?tds2[c]:null;if(td2&&normalizedNum(td2))td2.classList.add("num-marked","num-marked-click","zp-sc-triple-hit");
+       /* 2026-09-22 使用者指示：08(起始標的/定點zp-sc-key)維持一般配色(紅框藍底)；搜尋邏輯找出的號碼才要反轉配色
+          (zp-sc-triple-hit：藍框紅底)。同一格若剛好也是定點zp-sc-key，不能再蓋反轉配色，維持定點原本的一般配色 */
+       const markHit=function(td){td.classList.add("num-marked","num-marked-click");if(!td.classList.contains("zp-sc-key"))td.classList.add("zp-sc-triple-hit")};
+       [td0,td1].forEach(markHit);
+       const td2=tds2?tds2[c]:null;if(td2&&normalizedNum(td2))markHit(td2);
        /* 第一區命中的號碼連線到第一區第6期真正命中的那個號碼；第二區同理連第二區自己的第6期，不是連到另一區 */
        const offVal=NINE_GRID_DRAG_OFFSETS[hitK];
        ST.tripleHits.push({td0:td0,td1:map0[drags0[hitK]],offset:offVal});
