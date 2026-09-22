@@ -4339,11 +4339,11 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
    const filler=blankRow(tmpl,null);frag.appendChild(filler);ST.synth.push(filler);
    parent.appendChild(frag);
    ST.zones=zones.map(function(z,zi){const base=(mode===0)?zi*6:12;return outRows.slice(base,base+6)})}
- function build(mode,off,recompute){
+ function build(mode,off,recompute,keepOpenOnFail){
    if(!document.body.classList.contains("zhuapai-mode"))return false;
    const offAuto=!(typeof off==="number"&&isFinite(off));if(offAuto)off=0;
    const wasOn=ST.on;
-   if(!wasOn||recompute||!ST.info){const res=compute(wasOn&&ST.info&&ST.info.cur?ST.info.cur.label:null);if(res.err){if(!wasOn){if(!res.silent)toast(res.err)}else exit();return false}
+   if(!wasOn||recompute||!ST.info){const res=compute(wasOn&&ST.info&&ST.info.cur?ST.info.cur.label:null);if(res.err){if(!wasOn){if(!res.silent)toast(res.err)}else if(keepOpenOnFail){toast(res.err)}else exit();return false}
      ST.info={c:res.c,ctx:res.ctx,cur:res.cur}}
    const info=curInfo();if(!(mode>=0&&mode<=info.lists.length))mode=0;
    if(!wasOn){
@@ -4417,8 +4417,8 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
     if(e.cancelable)e.preventDefault()},true);
   ["pointerup","pointercancel"].forEach(function(n){document.addEventListener(n,function(e){if(e.pointerId===gId){const was=gDecided==="scroll";gOn=false;gId=null;gDecided=null;if(was&&ST.on)refreshFull()}},true)});
  }
- /* 模式鍵(單顯/定顯/全顯)切換時：三層開著就用新的比對邏輯重算 */
- {const __prevHook=window.onFullPageSheetModeChange;window.onFullPageSheetModeChange=function(){let r;try{if(typeof __prevHook==="function")r=__prevHook.apply(this,arguments)}catch(e){}if(ST.on){try{build(ST.mode,ST.off,true)}catch(e){}}return r}}
+ /* 模式鍵(單顯/定顯/全顯)切換時：三層開著就用新的比對邏輯重算；新模式下找不到標的也不可以退出三層(見build第4個參數) */
+ {const __prevHook=window.onFullPageSheetModeChange;window.onFullPageSheetModeChange=function(){let r;try{if(typeof __prevHook==="function")r=__prevHook.apply(this,arguments)}catch(e){}if(ST.on){try{build(ST.mode,ST.off,true,true)}catch(e){}}return r}}
  /* 第一招在三層裡標定/取消 → applyMarksToClone 跑完後重算依據、重畫複製品 */
  if(typeof applyMarksToClone==="function"){const __oam=applyMarksToClone;applyMarksToClone=function(){const r=__oam.apply(this,arguments);if(ST.on){try{build(ST.mode,ST.off,true)}catch(e){}}return r}}
  /* 三層開著時：視窗重排(捲動)一律不做；返回主畫面／重畫開獎單前先還原 */
