@@ -4377,8 +4377,9 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
    if(!(ST.on&&ST.mode===0&&window.fullPageSheetMode==="同"&&ST.zones.length>=3))return;
    const z0=ST.zones[0],z1=ST.zones[1],z2=ST.zones[2];
    const maxBall=cModeMaxBall(),cc=cModeColCount();
-   const numSet=function(tr){const s={};if(!tr)return s;Array.prototype.forEach.call(tr.querySelectorAll("td.num"),function(td){const n=normalizedNum(td);if(n)s[n]=true});return s};
-   const set0=numSet(z0[5]),set1=numSet(z1[5]);
+   /* 2026-09-22 使用者訂正：連線不是接到另一區同欄位那格，是各自連回「自己那區」第6期真正命中的那個號碼格 */
+   const numMap=function(tr){const m={};if(!tr)return m;Array.prototype.forEach.call(tr.querySelectorAll("td.num"),function(td){const n=normalizedNum(td);if(n&&!m[n])m[n]=td});return m};
+   const map0=numMap(z0[5]),map1=numMap(z1[5]);
    for(let r=0;r<5;r++){
      const tr0=z0[r],tr1=z1[r],tr2=z2[r];if(!tr0||!tr1)continue;
      const tds0=tr0.querySelectorAll("td.num"),tds1=tr1.querySelectorAll("td.num"),tds2=tr2?tr2.querySelectorAll("td.num"):null;
@@ -4386,12 +4387,15 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
        const td0=tds0[c],td1=tds1[c];if(!td0||!td1)continue;
        const n0=normalizedNum(td0),n1=normalizedNum(td1);if(!n0||!n1)continue;
        const drags0=calcNineGridDrag(parseInt(n0,10),maxBall),drags1=calcNineGridDrag(parseInt(n1,10),maxBall);
-       let hitK=-1;for(let k=0;k<drags0.length;k++){if(set0[drags0[k]]&&set1[drags1[k]]){hitK=k;break}}
+       let hitK=-1;for(let k=0;k<drags0.length;k++){if(map0[drags0[k]]&&map1[drags1[k]]){hitK=k;break}}
        if(hitK<0)continue;
        [td0,td1].forEach(function(td){td.classList.add("num-marked","num-marked-click","zp-sc-triple-hit")});
        const td2=tds2?tds2[c]:null;if(td2&&normalizedNum(td2))td2.classList.add("num-marked","num-marked-click","zp-sc-triple-hit");
-       /* 2026-09-22 使用者指示：條件成立的畫線連接(第一區↔第二區，真正驗證出九宮差的那一段)，線段中央畫正方形顯示命中的九宮差 */
-       ST.tripleHits.push({td0:td0,td1:td1,offset:NINE_GRID_DRAG_OFFSETS[hitK]})
+       /* 2026-09-22 使用者指示：第一區命中的號碼連線到第一區第6期真正命中的那個號碼；第二區同理連第二區自己的第6期，
+          不是連到另一區。線段中央畫正方形顯示命中的九宮差 */
+       const offVal=NINE_GRID_DRAG_OFFSETS[hitK];
+       ST.tripleHits.push({td0:td0,td1:map0[drags0[hitK]],offset:offVal});
+       ST.tripleHits.push({td0:td1,td1:map1[drags1[hitK]],offset:offVal})
      }
    }
  }
