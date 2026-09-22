@@ -4284,11 +4284,15 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
  /* 從 it(含)開始往後找第一個成立的候選；到底就從頭再找一次(繞回)；都沒有＝null */
  function findFrom(ctx,it,wrapped){let n=0;while(it&&n++<MAX_TRY){const cand=validate(ctx,it);if(cand)return cand;it=iterNext(ctx,it)}
    if(!wrapped)return findFrom(ctx,iterStart(ctx),true);return null}
+ /* 在既有 ctx(已掃描好的標記/期別資料)裡找候選：優先找跟 prevKey 同標籤的(標記沒變、只是模式變了時盡量停在原標的)，找不到才從頭找第一個成立的 */
+ function findCandidate(ctx,prevKey){
+   let cand=null;
+   if(prevKey){let it=iterStart(ctx),n=0;while(it&&n++<MAX_TRY){const cd=validate(ctx,it);if(cd&&cd.label===prevKey){cand=cd;break}it=iterNext(ctx,it)}}
+   if(!cand)cand=findFrom(ctx,iterStart(ctx),false);
+   return cand}
  function compute(prevKey){
    const ctx=prepare();if(ctx.err)return ctx;
-   let cand=null;
-   if(prevKey){/* 標記有變動時盡量停在同一個標的 */let it=iterStart(ctx),n=0;while(it&&n++<MAX_TRY){const cd=validate(ctx,it);if(cd&&cd.label===prevKey){cand=cd;break}it=iterNext(ctx,it)}}
-   if(!cand)cand=findFrom(ctx,iterStart(ctx),false);
+   const cand=findCandidate(ctx,prevKey);
    if(!cand)return{err:"畫面上沒有可用的標的",silent:true};
    return{c:ctx.c,ctx:ctx,cur:cand}}
  function curInfo(){if(!ST.info||!ST.info.cur)return null;return Object.assign({c:ST.info.c},ST.info.cur)}
@@ -4339,11 +4343,20 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
    const filler=blankRow(tmpl,null);frag.appendChild(filler);ST.synth.push(filler);
    parent.appendChild(frag);
    ST.zones=zones.map(function(z,zi){const base=(mode===0)?zi*6:12;return outRows.slice(base,base+6)})}
- function build(mode,off,recompute,keepOpenOnFail){
+ function build(mode,off,recompute,reuseCtx){
    if(!document.body.classList.contains("zhuapai-mode"))return false;
    const offAuto=!(typeof off==="number"&&isFinite(off));if(offAuto)off=0;
    const wasOn=ST.on;
-   if(!wasOn||recompute||!ST.info){const res=compute(wasOn&&ST.info&&ST.info.cur?ST.info.cur.label:null);if(res.err){if(!wasOn){if(!res.silent)toast(res.err)}else if(keepOpenOnFail){toast(res.err)}else exit();return false}
+   if(reuseCtx&&wasOn&&ST.info&&ST.info.ctx){
+     /* 模式鍵(定顯/全顯)切換專用：標記沒變、只是判定邏輯變了，但真正的開獎單列這時是藏起來的(display:none)，
+        prepare()重掃DOM一定找不到列而失敗——所以不能再走下面compute()那條路，沿用現有ctx只重新驗證找標的。
+        定顯成立時全顯的判定條件更寬鬆，邏輯上一定也成立；真的找不到(全顯切定顯變嚴格才可能發生)就留在三層裡跳提示，不退出 */
+     const cand=findCandidate(ST.info.ctx,ST.info.cur?ST.info.cur.label:null);
+     if(!cand){toast("此顯示模式下沒有可用的標的");return false}
+     ST.info.cur=cand
+   } else if(!wasOn||recompute||!ST.info){
+     const res=compute(wasOn&&ST.info&&ST.info.cur?ST.info.cur.label:null);
+     if(res.err){if(!wasOn){if(!res.silent)toast(res.err)}else exit();return false}
      ST.info={c:res.c,ctx:res.ctx,cur:res.cur}}
    const info=curInfo();if(!(mode>=0&&mode<=info.lists.length))mode=0;
    if(!wasOn){
