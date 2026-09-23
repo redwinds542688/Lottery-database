@@ -496,7 +496,7 @@
   }
   /* ===== 完整版(2026-09-10 第108條，自抓牌終極第100條移植)：暗色系(手動切換，body.theme-dark) ===== */
   html.theme-dark-boot{ background:#121212; }
-  body.theme-dark{ background:#121212; --ink:#e6e6e6; --ink-dim:#9a9a9a; --mark-text-color:#062B18; }
+  body.theme-dark{ background:#121212; --ink:#e6e6e6; --ink-dim:#9a9a9a; --mark-text-color:#FFF8DB; } /* 2026-09-23 使用者選配色A(底#B81C1C/字#FFF8DB)：暗色主題強制字色原本#062B18，配新底色對比只剩2.36，改成同一個淺色字 */
   /* 第104條：亮色系也一併加強——標記格字重900+白色微光暈，四招選號/前幾名深紅粗字；字色本身亮色仍用調色盤(綠7)，暗色用#062B18 */
   table.road td.num.num-marked, table.road td.num.c-mode-auto-match-cell{ font-weight:900 !important; text-shadow:0 0 2px rgba(255,255,255,.9), 0 0 1px rgba(255,255,255,.9); }
   table.road tr.future td.num.num-marked{ text-shadow:none; } /* 2026-09-18：桿子停在空白期只留框，白色光暈在暗色底會糊成一團，空白期列不加光暈 */
@@ -3941,7 +3941,7 @@ const PALETTE_GRAY=["#F2F2F2","#E0E0E0","#CCCCCC","#B3B3B3","#999999","#7A7A7A",
 const PALETTE_RED=["#FDE3E3","#FBC0C0","#F79595","#F26A6A","#EE4444","#E02424","#B81C1C","#8C1515","#5E0E0E"];
 const PALETTE_BLUE=["#E4EFFD","#C2DBFA","#93BFF5","#64A2F0","#3B82F6","#2563EB","#1D4FD1","#16389B","#0E2263"];
 const PALETTE_YELLOW=["#FFF8DB","#FFEFAF","#FFE47F","#FFD84D","#FFCC1A","#E6B200","#BF9400","#997600","#6B5200"];
-const PALETTE_ATTRS=[{key:"--mark-frame-color",label:"框色",def:"#3B82F6",colors:PALETTE_BLUE},{key:"--mark-bg-color",label:"底色",def:"#EE4444",colors:PALETTE_RED},/* 2026-08-30：框色與底色的色系互換(框色→藍系、底色→紅系)，預設值也跟著換 */{key:"--mark-text-color",label:"字色",def:"#BF9400",colors:PALETTE_YELLOW},{key:"--mark-line-color",label:"線色",def:"#2ECC71",colors:PALETTE_GREEN},{key:"--mark-predict-color",label:"拖曳",def:"#999999",colors:PALETTE_GRAY}]/* 2026-08-30：字色與拖曳的色系互換(字色→黃系、拖曳→綠系)。2026-09-06：使用者指示——線色與拖曳的色系再互換(線色→綠系、拖曳→灰系)，預設值也跟著換 */;
+const PALETTE_ATTRS=[{key:"--mark-frame-color",label:"框色",def:"#3B82F6",colors:PALETTE_BLUE},{key:"--mark-bg-color",label:"底色",def:"#B81C1C",colors:PALETTE_RED},/* 2026-08-30：框色與底色的色系互換(框色→藍系、底色→紅系)，預設值也跟著換 */{key:"--mark-text-color",label:"字色",def:"#FFF8DB",colors:PALETTE_YELLOW},{key:"--mark-line-color",label:"線色",def:"#2ECC71",colors:PALETTE_GREEN},{key:"--mark-predict-color",label:"拖曳",def:"#999999",colors:PALETTE_GRAY}]/* 2026-08-30：字色與拖曳的色系互換(字色→黃系、拖曳→綠系)。2026-09-06：使用者指示——線色與拖曳的色系再互換(線色→綠系、拖曳→灰系)，預設值也跟著換 */;
 const PALETTE_STORAGE_PREFIX="539_palette_";
 function readSavedPaletteColor(attr){try{return localStorage.getItem(PALETTE_STORAGE_PREFIX+attr.key)}catch(e){return null}}
 function savePaletteColor(attr,color){try{localStorage.setItem(PALETTE_STORAGE_PREFIX+attr.key,color)}catch(e){}saveSettingToDB(PALETTE_STORAGE_PREFIX+attr.key,color).catch(function(){})}
