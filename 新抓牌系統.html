@@ -3949,6 +3949,8 @@ const PALETTE_BLUE=["#E4EFFD","#C2DBFA","#93BFF5","#64A2F0","#3B82F6","#2563EB",
 const PALETTE_YELLOW=["#FFF8DB","#FFEFAF","#FFE47F","#FFD84D","#FFCC1A","#E6B200","#BF9400","#997600","#6B5200"];
 const PALETTE_ATTRS=[{key:"--mark-frame-color",label:"框色",def:"#16389B",colors:PALETTE_BLUE},{key:"--mark-bg-color",label:"底色",def:"#8C1515",colors:PALETTE_RED},/* 2026-08-30：框色與底色的色系互換(框色→藍系、底色→紅系)，預設值也跟著換 */{key:"--mark-text-color",label:"字色",def:"#FFF8DB",colors:PALETTE_YELLOW},{key:"--mark-line-color",label:"線色",def:"#2ECC71",colors:PALETTE_GREEN},{key:"--mark-predict-color",label:"拖曳",def:"#999999",colors:PALETTE_GRAY}]/* 2026-08-30：字色與拖曳的色系互換(字色→黃系、拖曳→綠系)。2026-09-06：使用者指示——線色與拖曳的色系再互換(線色→綠系、拖曳→灰系)，預設值也跟著換 */;
 const PALETTE_STORAGE_PREFIX="539_palette_";
+/* 2026-09-23 使用者指示：新版配色要所有手機一致——每台手機只做一次，把以前在設定裡點選存下的底色/字色/框色清掉(本機儲存與本機資料庫兩份都清)，改用新預設；清完記一個標記，之後再手動點選的顏色照常保留 */
+(function(){const FLAG="539_palette_reset_20260923";try{if(localStorage.getItem(FLAG))return}catch(e){return}["--mark-bg-color","--mark-text-color","--mark-frame-color"].forEach(function(k){try{localStorage.removeItem(PALETTE_STORAGE_PREFIX+k)}catch(e){}try{saveSettingToDB(PALETTE_STORAGE_PREFIX+k,"").catch(function(){})}catch(e){}});try{localStorage.setItem(FLAG,"1")}catch(e){}})();
 function readSavedPaletteColor(attr){try{return localStorage.getItem(PALETTE_STORAGE_PREFIX+attr.key)}catch(e){return null}}
 function savePaletteColor(attr,color){try{localStorage.setItem(PALETTE_STORAGE_PREFIX+attr.key,color)}catch(e){}saveSettingToDB(PALETTE_STORAGE_PREFIX+attr.key,color).catch(function(){})}
 function getPaperSizeStorageKey(){return"539_paper_size_"+currentGameKey}
