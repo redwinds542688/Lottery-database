@@ -1753,6 +1753,8 @@ table.road td.num.num-marked.num-marked-click.zp-sc-triple-hit::before{ backgrou
 /* 2026-09-22 使用者指示：每區第6期(最後一列)改用底色標示(比外框明顯)，用「線色組1」(--mark-line-color色系PALETTE_GREEN最淺那格#E6F7EC)填底色，見render()裡的zp-sc-last-row。
    2026-09-22 使用者回報「第六期的號碼太不清楚」：暗色系底下文字原本繼承白字，疊在這個淺色底上幾乎看不見；強制文字改深色，亮色/暗色系都固定黑字 */
 table.road tr.zp-sc-synth.zp-sc-last-row td{ background:#E6F7EC !important; color:#000 !important; }
+/* 2026-09-23 使用者回報「空白欄位底色不見了」：第6期若是空白期、又用第四招選過號(num-picked)，會被下面「抓牌畫面 num-picked 底色透明」那條(權重較高)蓋成透明，只剩沒選號的格子有底色。這裡用更高權重補回 */
+body.zhuapai-mode table.road tr.zp-sc-synth.zp-sc-last-row td.num.num-picked{ background:#E6F7EC !important; }
 html body #zhuapai-btn.zp-sc-on.zp-sc-on{ background-color:#FFD700 !important; color:#000 !important; }
 body.zp-sanceng #data-blank-divider-line{ display:none !important; }
 body.zhuapai-mode #data-blank-divider-line{ display:none !important; } /* 2026-09-23 使用者指示：抓牌畫面不要這條分界紅線 */
@@ -4400,7 +4402,7 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
    parent.appendChild(frag);
    ST.zones=zones.map(function(z,zi){const base=(mode===0)?zi*6:12;return outRows.slice(base,base+6)});
    /* 2026-09-22 使用者指示：每區第6期(最後一列)用底色標示，比外框明顯 */
-   ST.zones.forEach(function(g){const tr=g[g.length-1];if(tr){tr.classList.add("zp-sc-last-row");/* 2026-09-23 使用者回報「第三區最後一列沒有底色」：直接補一份行內樣式當保險，不管 class/CSS 疊加順序哪裡出岔子，這裡一定會上色 */Array.prototype.slice.call(tr.querySelectorAll("td")).forEach(function(td){td.style.setProperty("background","#E6F7EC","important");td.style.setProperty("color","#000","important")})}});
+   ST.zones.forEach(function(g){const tr=g[g.length-1];if(tr)tr.classList.add("zp-sc-last-row")});
    applyTripleHitMarks();applyKeyRowSixLinks()}
  /* 2026-09-22 使用者設計「三層+定顯」專屬搜尋：第一區第1~5期(每期colCount個號碼)逐一號碼配十字差(-10/-1/0/1/10這5個，
     使用者定名「十字差」，見ZP_SC_CROSS_DIFF_OFFSETS；跟全域的九宮差/九宮拖牌是不同概念，只用於這個搜尋)，
