@@ -34,7 +34,7 @@
 <meta name="apple-mobile-web-app-title" content="抓539" />
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
 <link rel="manifest" href="manifest.json" />
-<script>/* 程式版本(2026-09-23 起從 v1.0 開始編號)：顯示在「印」鍵選單；跟雲端(Worker)拿資料時一併送出(app＝哪個程式、v＝版本)，之後可依版本決定給不給資料 */window.APP_ID="zhua539";window.APP_VERSION="v1.1";</script>
+<script>/* 程式版本(2026-09-23 起從 v1.0 開始編號)：顯示在「印」鍵選單；跟雲端(Worker)拿資料時一併送出(app＝哪個程式、v＝版本)，之後可依版本決定給不給資料 */window.APP_ID="zhua539";window.APP_VERSION="v1.2";</script>
 <script>
 /* 2026-09-14：號碼在格子裡置中（畫面與存圖共用）
    使用者指示：「只要是號碼在格子裡，不管是什麼字體，不管是螢幕顯示還是存圖檔，號碼都必須在格子裡置中」。
@@ -4829,6 +4829,21 @@ if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostnam
       if(res.ok){lsSet(SIG_KEY,sig);return {ok:true}}
       return {ok:false,status:res.status,body:txt.slice(0,200)}}catch(e){return {ok:false,error:String(e&&e.message||e)}}}
   window.__screenReportSend=send;window.__screenReportCollect=collect;
+  /* ===== 使用人數(2026-09-24，v1.2 起)：每支手機每天第一次打開送一筆「今天有用」到 Worker(/ping)，Worker 記每支手機的第一次、最後一次使用日與累計使用天數。
+     只送 app、版本、裝置代號(隨機產生，不是手機序號)、開啟方式、型號；同一天重開不再送；沒網路就下次再送。 */
+  function twDay(){try{return new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"})}catch(e){return new Date().toISOString().slice(0,10)}}
+  var PING_KEY="539_ping_day";
+  async function ping(force){
+    var day=twDay();if(!force&&lsGet(PING_KEY)===day)return {skipped:"今天送過了"};
+    var u=await uaInfo();
+    var body={app:window.APP_ID||"",v:window.APP_VERSION||"",deviceId:deviceId(),mode:openMode(),model:u.model||"",platform:u.platform||""};
+    var key=(typeof CRAWLER_CLIENT_KEY!=="undefined")?CRAWLER_CLIENT_KEY:"";
+    var url=REPORT_BASE.replace(/\/report$/,"/ping")+"?key="+encodeURIComponent(key)+"&app="+encodeURIComponent(body.app)+"&v="+encodeURIComponent(body.v);
+    try{var res=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(body),keepalive:true,cache:"no-store"});
+      if(res.ok){lsSet(PING_KEY,day);return {ok:true}}return {ok:false,status:res.status}}catch(e){return {ok:false,error:String(e&&e.message||e)}}}
+  window.__usagePing=ping;
+  window.addEventListener("load",function(){setTimeout(function(){ping(false).catch(function(){})},2000)});
+  document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")setTimeout(function(){ping(false).catch(function(){})},1500)});/* 放在背景隔天再切回來也算一次 */
   var timer=null;function schedule(ms){clearTimeout(timer);timer=setTimeout(function(){send(false).catch(function(){})},ms)}
   window.addEventListener("load",function(){schedule(4000)});
   window.addEventListener("resize",function(){schedule(3000)});
@@ -4849,7 +4864,7 @@ if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostnam
     document.body.appendChild(ov);ov.querySelector("#screen-info-text").textContent=textOf(i);
     ov.addEventListener("click",function(e){if(e.target===ov)ov.remove()});
     ov.querySelector("#screen-info-close").addEventListener("click",function(){ov.remove()});
-    ov.querySelector("#screen-info-send").addEventListener("click",function(){var st=ov.querySelector("#screen-info-status");st.textContent="回傳中…";send(true).then(function(r){st.textContent=r&&r.ok?"已回傳 ✓":("回傳失敗："+(r&&(r.status?("代碼 "+r.status+" "+(r.body||"")):r.error)||"未知"))})})})}
+    ov.querySelector("#screen-info-send").addEventListener("click",function(){var st=ov.querySelector("#screen-info-status");st.textContent="回傳中…";ping(true).catch(function(){});send(true).then(function(r){st.textContent=r&&r.ok?"已回傳 ✓":("回傳失敗："+(r&&(r.status?("代碼 "+r.status+" "+(r.body||"")):r.error)||"未知"))})})})}
   var tries=0;(function attach(){var menu=document.getElementById("paper-size-menu");if(!menu){if(tries++<40)setTimeout(attach,500);return}
     if(menu.querySelector(".screen-info-option"))return;
     var b=document.createElement("button");b.type="button";b.className="paper-size-option screen-info-option";b.textContent="螢幕資訊";b.style.marginTop="10px";
