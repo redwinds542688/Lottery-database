@@ -4768,5 +4768,10 @@ boot().catch(function(e){console.error("boot失敗",e)});
   run();
 })();
 </script>
+<script>
+/* 2026-09-23：註冊 service worker(sw.js)——讓手機瀏覽器比較容易主動跳出「安裝抓539」。
+   只在正式網站(https)或本機測試(localhost)才註冊；直接打開手機裡的檔案(content://、file://)時不註冊，也不影響任何功能。 */
+if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(e){console.warn("service worker 註冊失敗(不影響使用)",e)})})}
+</script>
 </body>
 </html>
