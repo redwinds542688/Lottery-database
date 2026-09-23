@@ -4531,7 +4531,19 @@ window.__zpStepCount=function(){while(__zpSteps.length&&__zpSteps[__zpSteps.leng
    requestAnimationFrame(f);setTimeout(f,150);setTimeout(f,450);setTimeout(f,1000)}
  /* 2026-09-22 使用者指示：三層裡一二三招失效；返回(單擊/雙擊)＝只退出三層回到抓牌；清除單擊/雙擊失效；三層鍵單擊/雙擊＝只退出三層(雙擊的第二下不會再開) */
  /* 2026-09-22 使用者指示：左下角這顆——單擊/雙擊「三層」＝進入三層(雙擊的第二下 700ms 內吃掉，不會馬上切換標的)；進去之後改名「切換」＝切換搜尋標的(原本右上角切換鍵的功能搬過來，右上角那顆拿掉)；不再由這顆退出三層，退出只靠「返回」 */
- window.__zpSanCengToggle=function(){if(ST.on){if(Date.now()<(ST.openedAt||0)+700)return false;return nextTarget()}return build(0,null,true)};
+ window.__zpSanCengToggle=function(){if(ST.on){if(Date.now()<(ST.openedAt||0)+700)return false;return nextTarget()}
+   if(ST.opening)return false;
+   /* 2026-09-23 使用者指示：抓牌往下捲動回看不管幾期，按三層只要條件成立畫面就要馬上轉回來。
+      原本三層只看「畫面上看得到的最後5期」，回看時標定的那期被推出畫面＝判定沒有標定號碼、完全不動作。
+      改成：有回看時先捲回最新一期再判斷(表格有0.15秒滑動動畫，等它到位才量得準)；最新一期不成立，再回到剛才回看的位置判斷；都不成立就留在原本回看的位置 */
+   const k0=(typeof cModeScrollOffset==="number")?cModeScrollOffset:0;
+   if(k0>0&&typeof window.__zpScrollTo==="function"){
+     ST.opening=true;window.__zpScrollTo(0);
+     setTimeout(function(){let ok=false;try{ok=build(0,null,true)}catch(e){}
+       if(ok){ST.opening=false;return}
+       window.__zpScrollTo(k0);setTimeout(function(){try{build(0,null,true)}catch(e){}ST.opening=false},350)},350);
+     return true}
+   return build(0,null,true)};
  if(typeof marksAllowed==="function"){const __oma=marksAllowed;marksAllowed=function(){if(ST.on)return false;return __oma.apply(this,arguments)};window.marksAllowed=marksAllowed}
  if(typeof __zpUndoStep==="function"){const __ou=__zpUndoStep;__zpUndoStep=function(){if(ST.on)return false;return __ou.apply(this,arguments)}}
  {const back=document.getElementById("period-btn");let guardUntil=0;
