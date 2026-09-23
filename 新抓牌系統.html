@@ -2903,7 +2903,7 @@ const LONG_PRESS_MOVE_TOLERANCE=10;
 let longPressTimer=null;
 let longPressStartX=null,longPressStartY=null,longPressTargetTd=null;
 function cancelLongPress(){clearTimeout(longPressTimer);longPressTimer=null;longPressTargetTd=null}
-panels.addEventListener("pointerdown",function(e){if(!marksAllowed())return;const td=e.target.closest("td.num.pending, td.num.num-picked");if(!td)return;const tdTr=td.closest("tr");/* 2026-09-02：使用者澄清「還是一樣前三排」——長按選號盤維持只限前3排空白列(tr.future)，不是限制本身的問題；真正要修的是截圖沒把已選號畫進圖裡，還原成原本的前3排限制 */const firstTwoFutureRows=Array.prototype.slice.call(panels.querySelectorAll("tr.future")).slice(0,3);if(firstTwoFutureRows.indexOf(tdTr)===-1)return;longPressStartX=e.clientX;longPressStartY=e.clientY;longPressTargetTd=td;clearTimeout(longPressTimer);longPressTimer=setTimeout(function(){if(longPressTargetTd)openNumPicker(longPressTargetTd);longPressTimer=null},LONG_PRESS_MS)});
+panels.addEventListener("pointerdown",function(e){if(!marksAllowed())return;const td=e.target.closest("td.num.pending, td.num.num-picked");if(!td)return;const tdTr=td.closest("tr");/* 2026-09-02：使用者澄清「還是一樣前三排」——長按選號盤維持只限前3排空白列(tr.future)，不是限制本身的問題；真正要修的是截圖沒把已選號畫進圖裡，還原成原本的前3排限制 *//* 2026-09-23 使用者指示：改成空白期第4～7列才有效、前3列無效——跟下一期開出的號碼隔開，註記不會跟新開獎號碼混淆(抓牌註記欄 __zpNextFreePendingCell 同步) */const pickFutureRows=Array.prototype.slice.call(panels.querySelectorAll("tr.future")).slice(3,7);if(pickFutureRows.indexOf(tdTr)===-1)return;longPressStartX=e.clientX;longPressStartY=e.clientY;longPressTargetTd=td;clearTimeout(longPressTimer);longPressTimer=setTimeout(function(){if(longPressTargetTd)openNumPicker(longPressTargetTd);longPressTimer=null},LONG_PRESS_MS)});
 panels.addEventListener("pointermove",function(e){if(!longPressTimer)return;const dist=Math.hypot(e.clientX-longPressStartX,e.clientY-longPressStartY);if(dist>LONG_PRESS_MOVE_TOLERANCE)cancelLongPress()});
 panels.addEventListener("pointerup",cancelLongPress);
 panels.addEventListener("pointercancel",cancelLongPress);
@@ -4079,7 +4079,7 @@ function __zpRenderPickCol(){
     __zpCol.appendChild(cell)});
 }
 window.__zpRenderPickCol=__zpRenderPickCol;
-function __zpNextFreePendingCell(){const futureTrs=Array.prototype.slice.call(panels.querySelectorAll("tr.future")).slice(0,3);
+function __zpNextFreePendingCell(){const futureTrs=Array.prototype.slice.call(panels.querySelectorAll("tr.future")).slice(3,7);/* 空白期第4～7列，跟全頁第四招同一範圍 */
   for(const tr of futureTrs){const tds=Array.prototype.slice.call(tr.querySelectorAll("td.num"));for(const td of tds){if(td.classList.contains("pending")&&!td.classList.contains("num-picked"))return td}}return null}
 /* 選號盤是在手指還按著的時候跳出來的，會剛好蓋在手指底下；手指一放開，那一下會被當成「點了選號盤上的某個號碼」而誤選。
    所以從左欄長按開盤後，先把「放開的那一下」吃掉，等手指離開螢幕之後的點擊才算數。 */
