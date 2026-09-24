@@ -87,41 +87,41 @@
     "加州彩券官網": {
       "first_fail_date": null,
       "disabled": false,
-      "last_success_date": "2026-09-23"
+      "last_success_date": "2026-09-24"
     },
     "lotteryusa.com": {
       "first_fail_date": null,
       "disabled": false,
-      "last_success_date": "2026-09-23"
+      "last_success_date": "2026-09-24"
     },
     "lottery.net": {
       "first_fail_date": "2026-08-25",
-      "disabled": false,
+      "disabled": true,
       "last_success_date": null
     },
     "lotto-8.com": {
       "first_fail_date": null,
       "disabled": false,
-      "last_success_date": "2026-09-23"
+      "last_success_date": "2026-09-24"
     },
     "twlottery.in": {
       "first_fail_date": "2026-08-25",
-      "disabled": false,
+      "disabled": true,
       "last_success_date": null
     },
     "pilio.idv.tw": {
       "first_fail_date": "2026-08-25",
-      "disabled": false,
+      "disabled": true,
       "last_success_date": null
     },
     "lotteryextreme.com": {
       "first_fail_date": null,
       "disabled": false,
-      "last_success_date": "2026-09-23"
+      "last_success_date": "2026-09-24"
     },
     "Google新聞搜尋": {
       "first_fail_date": "2026-08-25",
-      "disabled": false,
+      "disabled": true,
       "last_success_date": null
     }
   },
