@@ -38,6 +38,9 @@ data.json 並刷新畫面，不用等 5 分鐘自動週期。副作用：小工�
     （或 py lottery_bar.py）
 需求：
     pip install requests pillow
+文字外框（2026-09-24）：
+    每個字外圍描一圈深色邊（OUTLINE_WIDTH / OUTLINE_COLOR），淺色桌布上也看得清楚，
+    背景仍然透明。不想要外框就把 OUTLINE_WIDTH 改成 0。
 資料來源（2026-09-24 修正）：
     GitHub repo 已改成 Private，公開網址 raw.githubusercontent.com 讀不到了(404)，
     所以改從 Cloudflare Worker（lottery-data-gate）讀，跟手機上的抓539／主程式同一個來源，
@@ -100,6 +103,11 @@ FONT_CANDIDATES = [
 #   2. 抗鋸齒邊緣萬一沒完全被判定成透明，殘留的深色鑲邊會比亮色（例如
 #      桃紅色）鑲邊不明顯很多，肉眼比較不容易注意到。
 TRANSPARENT_COLOR = "#010101"
+# 2026-09-24 文字加深色外框(像電影字幕)：桌布是淺色(天空、白色網頁)時淺色字會被吃掉，
+# 每個字外圍描一圈深色邊，不論背景深淺都看得清楚；背景仍然完全透明。
+# 外框顏色不能跟 TRANSPARENT_COLOR 一樣(一樣就會變透明、外框消失)。
+OUTLINE_WIDTH = 2             # 外框粗細(像素)；0＝不描邊(回到原本樣子)；覺得太粗可改 1
+OUTLINE_COLOR = "#141414"     # 外框顏色：接近黑但不是色鍵色
 # 統一配色（不分彩券，所有彩券共用同一套顏色）
 GAME_NAME_COLOR = "#8ec9f2"   # 彩券名稱：淺藍色
 DATE_COLOR = "#c9c9c9"        # 日期：淺灰色
@@ -189,27 +197,35 @@ def _load_font():
     return ImageFont.load_default()
 _FONT = _load_font()
 _ASCENT, _DESCENT = _FONT.getmetrics()
-_TEXT_IMG_HEIGHT = _ASCENT + _DESCENT + 4  # 上下各留一點邊，避免筆畫被裁到
-_TEXT_IMG_PAD = 2
-def render_text_image(text, color_hex):
-    """把一段文字畫成一張 Pillow RGB 圖片，回傳可以直接放進 tk.Label(image=...)
-    的 PhotoImage。每個像素只會是「色鍵透明色」或「文字顏色」兩者之一，
-    反鋸齒造成的過渡色會被二值化拿掉（見下面的 point() 那行），這樣色鍵
-    去背才能正確判斷透明，不會殘留鑲邊。"""
+_TEXT_IMG_PAD = 1 + OUTLINE_WIDTH            # 左右上下留邊，外框才不會被裁到(字本身左右還有一點留白，1+外框寬就夠)
+_TEXT_IMG_HEIGHT = _ASCENT + _DESCENT + 2 * _TEXT_IMG_PAD
+def render_text_pil(text, color_hex):
+    """把一段文字畫成 Pillow RGB 圖片(不含 tkinter，方便單獨測試)。
+    每個像素只會是「色鍵透明色」「外框色」「文字顏色」三者之一，反鋸齒造成的
+    過渡色一律二值化拿掉，色鍵去背才能正確判斷透明，不會殘留鑲邊。
+    2026-09-24：先畫一層加粗(stroke)的外框遮罩塗上深色，再把文字本體蓋上去，
+    淺色桌布上也看得清楚。"""
     dummy_draw = ImageDraw.Draw(Image.new("RGB", (1, 1)))
     width = max(int(dummy_draw.textlength(text, font=_FONT)) + _TEXT_IMG_PAD * 2, 1)
     height = _TEXT_IMG_HEIGHT
+    img = Image.new("RGB", (width, height), TRANSPARENT_COLOR)
+    if OUTLINE_WIDTH > 0:
+        outline = Image.new("L", (width, height), 0)
+        ImageDraw.Draw(outline).text((_TEXT_IMG_PAD, _TEXT_IMG_PAD), text, font=_FONT, fill=255,
+                                     stroke_width=OUTLINE_WIDTH, stroke_fill=255)
+        outline = outline.point(lambda p: 255 if p >= 96 else 0)
+        img.paste(Image.new("RGB", (width, height), OUTLINE_COLOR), (0, 0), outline)
     mask = Image.new("L", (width, height), 0)
-    mask_draw = ImageDraw.Draw(mask)
-    mask_draw.text((_TEXT_IMG_PAD, _TEXT_IMG_PAD), text, font=_FONT, fill=255)
+    ImageDraw.Draw(mask).text((_TEXT_IMG_PAD, _TEXT_IMG_PAD), text, font=_FONT, fill=255)
     # 二值化：反鋸齒造成的過渡灰階像素，一律歸類成「有文字」或「沒文字」，
     # 不再保留中間值，這樣畫出來的圖片才不會有介於色鍵色跟文字色之間的
     # 過渡像素（那種過渡像素才是造成白色背景下鑲邊/模糊的元兇）。
     mask = mask.point(lambda p: 255 if p >= 128 else 0)
-    img = Image.new("RGB", (width, height), TRANSPARENT_COLOR)
-    solid = Image.new("RGB", (width, height), color_hex)
-    img.paste(solid, (0, 0), mask)
-    return ImageTk.PhotoImage(img)
+    img.paste(Image.new("RGB", (width, height), color_hex), (0, 0), mask)
+    return img
+def render_text_image(text, color_hex):
+    """render_text_pil() 畫好的圖片轉成 tk.Label(image=...) 用的 PhotoImage。"""
+    return ImageTk.PhotoImage(render_text_pil(text, color_hex))
 # ---------------------------------------------------------------------------
 # 讀取雲端資料
 # ---------------------------------------------------------------------------
