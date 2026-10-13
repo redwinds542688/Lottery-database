@@ -15,18 +15,18 @@
   },
   "lotto649": {
     "fetching": false,
-    "updated_at": "2026-10-12 21:41:51",
-    "date": "2026-10-12",
-    "weekday": "一",
+    "updated_at": "2026-10-13 19:49:46",
+    "date": "2026-10-13",
+    "weekday": "二",
     "numbers": [
       3,
-      9,
-      11,
-      25,
-      34,
-      41
+      31,
+      35,
+      36,
+      47,
+      48
     ],
-    "special": 27
+    "special": 32
   },
   "fantasy5": {
     "fetching": false,
