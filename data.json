@@ -6141,6 +6141,14 @@
   ],
   "大樂透": [
     {
+      "period": "115000103",
+      "draw_date": "2026-11-06T00:00:00",
+      "numbers": "5 9 26 32 41 48",
+      "special_number": "23",
+      "agreeing_sources": "台彩官方API, 9800.com.tw",
+      "checked_at": "2026-11-06 19:55:15"
+    },
+    {
       "period": "115000102",
       "draw_date": "2026-11-03T00:00:00",
       "numbers": "2 23 24 25 29 39",
