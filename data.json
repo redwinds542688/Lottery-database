@@ -1,6 +1,14 @@
 {
   "今彩539": [
     {
+      "period": "115000269",
+      "draw_date": "2026-11-06T00:00:00",
+      "numbers": "14 20 23 26 29",
+      "special_number": "",
+      "agreeing_sources": "台彩官方API, i539.tw, 奧索樂透網",
+      "checked_at": "2026-11-06 19:42:27"
+    },
+    {
       "period": "115000268",
       "draw_date": "2026-11-05T00:00:00",
       "numbers": "20 28 32 36 37",
